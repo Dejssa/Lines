@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/rb_square"
+        android:drawable="@drawable/square"/>
+    <item
+        android:id="@+id/rb_ball"
+        android:drawable="@drawable/l_ball_black_tx"/>
+</layer-list>
