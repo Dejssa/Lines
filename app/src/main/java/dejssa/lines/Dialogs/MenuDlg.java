@@ -2,7 +2,6 @@
 package dejssa.lines.Dialogs;
 
 import android.app.Dialog;
-import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.widget.Button;
@@ -26,7 +25,7 @@ public class MenuDlg extends Dialog{
         super(activity);
         this.activity = activity;
         setCancelable(isCancelable);
-        setVerstion();
+
     }
 
     @Override
@@ -67,11 +66,5 @@ public class MenuDlg extends Dialog{
             System.exit(0);
         });
     }
-
-    private void setVerstion() {
-        TextView verstionTxt = findViewById(R.id.main_version);
-        verstionTxt.setText(BuildConfig.VERSION_NAME);
-    }
-
 
 }

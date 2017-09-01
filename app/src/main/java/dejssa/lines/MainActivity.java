@@ -28,10 +28,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        setVersion();
+
         new MenuDlg(this, false).show();
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
     }
+
+    private void setVersion() {
+        TextView versionTxt = (TextView) findViewById(R.id.main_version);
+        versionTxt.setText(BuildConfig.VERSION_NAME);
+    }
+
 
     public void startGame() {
         LinearLayout gameField = bindInterface();
