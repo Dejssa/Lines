@@ -45,11 +45,6 @@ public class Square extends android.support.v7.widget.AppCompatImageView {
         changeColor(color);
     }
 
-    @Override
-    public String toString(){
-        return String.valueOf(color);
-    }
-
     private void changeColor(char color){
         switch (color){
             case RAISED_RED:

@@ -72,14 +72,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Square[] createFutureBalls(){
-        Square[] futureBalls = new Square[BallsMemory.FUTURE_BALLS_AMOUNT];
+        Square[] futureBalls = new Square[Field.FUTURE_BALL];
 
         LinearLayout futureBallsLay = (LinearLayout) findViewById(R.id.futureBallsLay);
 
         futureBallsLay.removeAllViews();
 
         ViewGroup.LayoutParams ballsParams = futureBallsLay.getLayoutParams();
-        ballsParams.height = futureBallsLay.getWidth()/BallsMemory.FUTURE_BALLS_AMOUNT;
+        ballsParams.height = futureBallsLay.getWidth() / Field.FUTURE_BALL;
 
         for(int i = 0; i < futureBalls.length; i++){
             futureBalls[i] = new Square(this);

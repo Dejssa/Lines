@@ -29,24 +29,16 @@ public class DataBaseOperations  {
         dataBase = new DataBase(context);
     }
 
-    public void saveGame(Square[][] field, Integer score){
+    public void saveGame(String field, Integer score){
         deletePrevious();
 
-        StringBuilder fieldToSave = new StringBuilder(100);
-
-        for(int i = 0; i < field.length; i++) {
-            for(int j = 0; j < field.length; j++){
-                fieldToSave.append(field[i][j].getColor());
-            }
-        }
-
-        Log.v("Save - field", fieldToSave.toString());
+        Log.v("Save - field", field);
 
         sqLiteDatabase = dataBase.getWritableDatabase();
         ContentValues cv = new ContentValues();
 
         cv.put(DataBase.SAVE_SCORE, score);
-        cv.put(DataBase.SAVE_FIELD, fieldToSave.toString());
+        cv.put(DataBase.SAVE_FIELD, field);
 
         sqLiteDatabase.insert(DataBase.SAVE, null, cv);
 
@@ -128,4 +120,5 @@ public class DataBaseOperations  {
         sqLiteDatabase.close();
 
     }
+
 }

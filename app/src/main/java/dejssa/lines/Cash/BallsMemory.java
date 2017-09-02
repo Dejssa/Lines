@@ -12,16 +12,30 @@ import dejssa.lines.gameField.Square;
 
 public class BallsMemory {
 
-    public static final int FUTURE_BALLS_AMOUNT = 3;
 
-    private int[][] coord = {{-1,-1}, {-1,-1}, {-1,-1}};
-    private char[] colors = {Square.EMPTY,Square.EMPTY,Square.EMPTY};
 
-    public void save(int[][] coord){
+    private int size;
+
+    private int[][] coord;// = {{-1,-1}, {-1,-1}, {-1,-1}};
+    private char[] colors;// = {Square.EMPTY,Square.EMPTY,Square.EMPTY};
+    private Object[] game_save;
+
+    public BallsMemory(int size) {
+        this.size = size;
+        coord = new int[size][2];
+        colors = new char[size];
+        for(int i = 0; i < size; i++){
+            coord[i] = new int[]{-1,-1};
+            colors[i] = Square.EMPTY;
+        }
+
+    }
+
+    public void saveCoords(int[][] coord){
         this.coord = coord;
     }
 
-    public int[][] restoreCoord(){
+    public int[][] restoreCoords(){
         return coord;
     }
 
@@ -33,26 +47,11 @@ public class BallsMemory {
         return colors;
     }
 
-    private final int SIZE = 10;
-
-    private char[][] memory;
-
-    public void saveField(Square[][] squares){
-        memory = new char[SIZE][SIZE];
-        for(int i = 0; i < SIZE; i++) {
-            for(int j = 0; j < SIZE; j++){
-                this.memory[i][j] = squares[i][j].getColor();
-            }
-        }
-        for (char[] aMemory : memory)
-            Log.v("Step", Arrays.toString(aMemory));
+    public void saveGame(String field, Integer score){
+        game_save = new Object[]{field, score};
     }
 
-    public void restoreMemory( Square[][] squares){
-        for(int i = 0; i < SIZE; i++) {
-            for(int j = 0; j < SIZE; j++){
-                squares[i][j].setColor(memory[i][j]);
-            }
-        }
+    public Object[] restoreGame(){
+        return game_save;
     }
 }

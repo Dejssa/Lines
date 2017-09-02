@@ -7,7 +7,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 /**
- * Created by Алексей on 25.08.2017.
+ * Created by Dejssa on 25.08.2017.
  * Find path to selected point and process all actions that connected to it.
  */
 
@@ -16,12 +16,12 @@ public class GameStep {
     private char[][] field;
     private Square[][] square;
 
-    public GameStep(Square[][] square) {
+    GameStep(Square[][] square) {
         field = new char[square.length][square.length];
         this.square = square;
     }
 
-    public int step(int[] a, int[]b){
+    int step(int[] a, int[]b){
 
         for(int i = 0; i < square.length; i++) {
             for(int j = 0; j < square.length; j++){
@@ -83,7 +83,7 @@ public class GameStep {
             return -1;
     }
 
-    public int makeBoom(int[] a, char ball){
+    int makeBoom(int[] a, char ball){
         int score = 0;
 
         score += diagFirst(a, ball);
@@ -103,7 +103,6 @@ public class GameStep {
                 field[x][y] != 'B' && field[x][y] != 'P' &&
                 field[x][y] != 'G' && field[x][y] != 'Y' && field[x][y] != '1';
     }
-
 
     private int diagFirst(int[] a, char ball){
         int score = 1;

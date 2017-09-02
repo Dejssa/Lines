@@ -4,7 +4,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Arrays;
@@ -25,6 +24,8 @@ public class Field implements View.OnClickListener {
 
     private final Integer SIZE = 10;
 
+    public static final Integer FUTURE_BALL = 3;
+
     private int steps = 0;
     private int unFree = 3;
 
@@ -36,17 +37,17 @@ public class Field implements View.OnClickListener {
     private int active_x = -1;
     private int active_y = -1;
 
-    private final MainActivity context;
+    private final MainActivity activity;
 
     private static BallsMemory ballsMemory;
     private GameStep gameStep;
 
 
-    public Field(MainActivity context, LinearLayout gameField, Square[] balls){
+    public Field(MainActivity activity, LinearLayout gameField, Square[] balls){
 
-        this.context = context;
+        this.activity = activity;
 
-        ballsMemory = new BallsMemory();
+        ballsMemory = new BallsMemory(FUTURE_BALL);
 
         futureBalls = balls;
 
@@ -57,9 +58,19 @@ public class Field implements View.OnClickListener {
         gameStep = new GameStep(squares);
 
         generateNext();
+    }
 
-        ballsMemory.saveField(squares);
+    @Override
+    public String toString(){
+        StringBuilder fieldToSave = new StringBuilder(100);
 
+        for(int i = 0; i < SIZE; i++) {
+            for(int j = 0; j < SIZE; j++){
+                fieldToSave.append(squares[i][j].getColor());
+            }
+        }
+
+        return fieldToSave.toString();
     }
 
     private void createField(LinearLayout gameField){
@@ -69,12 +80,12 @@ public class Field implements View.OnClickListener {
 
         for(int i = 0;i < SIZE; i++){
 
-            field[i] = new LinearLayout(context);
+            field[i] = new LinearLayout(activity);
             field[i].setLayoutParams(params);
 
             for(int j = 0;j < SIZE; j++){
 
-                squares[i][j] = new Square(context);
+                squares[i][j] = new Square(activity);
                 squares[i][j].setLayoutParams(params);
                 squares[i][j].setBackgroundResource(R.drawable.square);
                 squares[i][j].setOnClickListener(this);
@@ -109,7 +120,9 @@ public class Field implements View.OnClickListener {
     }
 
     public void undoStep(){
-        ballsMemory.restoreMemory(squares);
+        Object[] game_save = ballsMemory.restoreGame();
+        Log.v("Step", String.valueOf(game_save[0]));
+        restoreGame(String.valueOf(game_save[0]).toCharArray(), (Integer) game_save[1]);
         Log.v("Step", "Restoring");
     }
 
@@ -119,9 +132,9 @@ public class Field implements View.OnClickListener {
             Log.v("Save",Arrays.toString(squares[i]) );
         }
 
-        DataBaseOperations operations = new DataBaseOperations(context);
+        DataBaseOperations operations = new DataBaseOperations(activity);
 
-        operations.saveGame(squares, score);
+        operations.saveGame(this.toString(), score);
     }
 
     //============================================
@@ -129,11 +142,12 @@ public class Field implements View.OnClickListener {
     //============================================
 
     public void restoreGame(char[] field, int score){
-        updateScore(score);
+        updateScore(score, true);
         unFree = 0;
         int[][] coord = new int[3][2];
         char[] colors = new char[3];
         int count = 0;
+        int unFree = 0;
         for(int i = 0; i < SIZE; i++){
             for(int j = 0; j < SIZE; j++){
                 char color = field[(i*10)+j];
@@ -143,10 +157,12 @@ public class Field implements View.OnClickListener {
                     colors[count] = color;
                     count++;
                 }
-                changeUnFree((color >= 'a' && color <= 'z') || (color >= 'A' && color <= 'Z') ? 1 : 0);
+                unFree+= (color >= 'a' && color <= 'z') || (color >= 'A' && color <= 'Z') ? 1 : 0;
+
                 squares[i][j].setColor(color);
             }
         }
+        changeUnFree(unFree);
         restoreFutureBalls(coord, colors);
     }
 
@@ -154,7 +170,7 @@ public class Field implements View.OnClickListener {
         Log.v("Restore - colors" ,Arrays.toString(colors));
         for(int i = 0; i < colors.length; i++)
             Log.v("Restore - coords" ,Arrays.toString(coords[i]));
-        ballsMemory.save(coords);
+        ballsMemory.saveCoords(coords);
         ballsMemory.saveColors(colors);
         for(int i = 0; i < colors.length; i++){
             futureBalls[i].setColor((char) (colors[i]-32));
@@ -195,7 +211,7 @@ public class Field implements View.OnClickListener {
                 selectBall(x,y);
 
             }else{
-
+                ballsMemory.saveGame(this.toString(), score);
                 fieldUpdate(x, y);
 
                 steps++;
@@ -203,8 +219,6 @@ public class Field implements View.OnClickListener {
                     steps = 0;
                     saveGame();
                 }
-
-                //ballsMemory.saveField(squares);
 
             }
 
@@ -228,13 +242,13 @@ public class Field implements View.OnClickListener {
             squares[active_x][active_y].setColor(Square.EMPTY);
             active_y = active_x = -1;
 
-            updateScore(score);
+            updateScore(score,false);
 
             changeUnFree(-score);
         }
         else{
 
-            Toast.makeText(context, "Cannot reach", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, "Cannot reach", Toast.LENGTH_SHORT).show();
 
         }
     }
@@ -253,39 +267,46 @@ public class Field implements View.OnClickListener {
         active_x = active_y = -1;
     }
 
-    private void updateScore(int score){
+    //============================================
+    //
+    //============================================
 
-        int min_score = 5;
+    private void updateScore(int score, boolean restoring){
+        if(restoring){
+            this.score = score;
+        }
+        else{
 
-        if(score > min_score){
-            double calc = 1.0;
-            for(int i = 0; i <= score - min_score; i++){
-                calc*=1.5;
+            int min_score = 5;
+
+            if (score > min_score) {
+                double calc = 1.0;
+                for (int i = 0; i <= score - min_score; i++) {
+                    calc *= 1.5;
+                }
+                score = 5 + Double.valueOf(calc).intValue();
+
             }
-            score = 5 + Double.valueOf(calc).intValue();
+
+            this.score += score;
 
         }
 
-        this.score += score;
-
-        context.updateScore(this.score);
+        activity.updateScore(this.score);
     }
 
     private void generateNext(){
         RandomGen gen = new RandomGen();
 
-        int[][] coords = ballsMemory.restoreCoord();
+        int[][] coords = ballsMemory.restoreCoords();
         char[] colors = ballsMemory.restoreColors();
 
         riseBalls(coords, colors, gen);
 
-
-
-
         colors = gen.futureBalls();
         ballsMemory.saveColors(colors);
 
-        int length = 3;
+        int length = FUTURE_BALL;
         for(int i = 0; i < length;){
 
             int x = gen.genZeroTo(SIZE);
@@ -307,8 +328,8 @@ public class Field implements View.OnClickListener {
 
         }
 
-        ballsMemory.save(coords);
-        changeUnFree(3);
+        ballsMemory.saveCoords(coords);
+        changeUnFree(FUTURE_BALL);
     }
 
     private void riseBalls( int[][] coord, char[] colors, RandomGen gen){
@@ -328,7 +349,7 @@ public class Field implements View.OnClickListener {
                     }
                     else{
                         squares[coord[i][0]][coord[i][1]].setColor(Square.EMPTY);
-                        updateScore(score);
+                        updateScore(score, false);
                         changeUnFree(-score);
                     }
                 }
@@ -356,8 +377,8 @@ public class Field implements View.OnClickListener {
         unFree+=i;
         Log.v("Field", unFree + " unFree sqaures left");
         if(unFree >=98){
-            Toast.makeText(context, "You earn " + score, Toast.LENGTH_LONG).show();
-            new EndOfGameDlg(context, score).show();
+            Toast.makeText(activity, "You earn " + score, Toast.LENGTH_LONG).show();
+            new EndOfGameDlg(activity, score).show();
         }
         if(i <= -5) {
             try {
