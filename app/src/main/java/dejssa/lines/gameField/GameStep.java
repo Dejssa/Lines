@@ -21,7 +21,7 @@ public class GameStep {
         this.square = square;
     }
 
-    int step(int[] a, int[]b){
+    int step(int[] a, int[]b, char ballColor){
 
         for(int i = 0; i < square.length; i++) {
             for(int j = 0; j < square.length; j++){
@@ -29,41 +29,44 @@ public class GameStep {
             }
         }
 
-        class Coords{
+        class Coordinates {
             int x;
             int y;
-            Coords(int x, int y){
+            Coordinates(int x, int y){
                 this.x = x;
                 this.y = y;
             }
         }
 
-        Queue<Coords> queue = new PriorityQueue<>(100, (nodeA, nodeB) -> 0);
+        Queue<Coordinates> queue = new PriorityQueue<>(100, (nodeA, nodeB) -> 0);
 
-        queue.add(new Coords(a[0],a[1]));
+        queue.add(new Coordinates(a[0],a[1]));
 
         Log.v("Step", a[0] + " " + a[1]);
 
         boolean reach = false;
+
+        //Here is no bug 'cause it can move only on unchecked point that mean queue after some steps always will be empty
+
         while(!queue.isEmpty() || reach){
 
-            Coords s = queue.poll();
+            Coordinates s = queue.poll();
 
             if(s.x > 0 && isFree(s.x-1,s.y)){
                 mark(s.x-1, s.y);
-                queue.add(new Coords(s.x-1,s.y));
+                queue.add(new Coordinates(s.x-1,s.y));
             }
             if(s.x < field.length-1 && isFree(s.x+1,s.y)){
                 mark(s.x+1, s.y);
-                queue.add(new Coords(s.x+1,s.y));
+                queue.add(new Coordinates(s.x+1,s.y));
             }
             if( s.y < field.length-1 && isFree(s.x,s.y+1)){
                 mark(s.x,s.y+1);
-                queue.add(new Coords(s.x,s.y+1));
+                queue.add(new Coordinates(s.x,s.y+1));
             }
             if( s.y > 0 && isFree(s.x,s.y-1)){
                 mark(s.x,s.y-1);
-                queue.add(new Coords(s.x,s.y-1));
+                queue.add(new Coordinates(s.x,s.y-1));
             }
             if(s.x == b[0] && s.y == b[1]){
                 reach = true;
@@ -74,7 +77,7 @@ public class GameStep {
 
         if(reach) {
 
-            int score = makeBoom(b, square[a[0]][a[1]].getColor());
+            int score = makeBoom(b, ballColor);
 
             Log.v("Score", "" + score);
             return score;

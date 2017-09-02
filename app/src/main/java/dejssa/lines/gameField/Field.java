@@ -196,10 +196,8 @@ public class Field implements View.OnClickListener {
         }
 
         if(active_y == -1 || active_x == -1 ){
-
             if(squares[x][y].canPickIt())
                 selectBall(x,y);
-
         }
         else{
             if(active_x == x && active_y == y){
@@ -228,18 +226,20 @@ public class Field implements View.OnClickListener {
     }
 
     private void fieldUpdate(int x, int y){
-        int score = gameStep.step(new int[]{active_x, active_y}, new int[]{x, y});
+        char saveColor = squares[active_x][active_y].getColor();
+        squares[active_x][active_y].setColor(Square.EMPTY);
+        int score = gameStep.step(new int[]{active_x, active_y}, new int[]{x, y}, saveColor);
+        //Log.v("Step - placing before", "placing on " + x + " " + y);
+        if (score < 5) {
+            Log.v("Step - placing", "placing on " + x + " " + y);
+            squares[x][y].setColor(saveColor);
 
-        if (score == 0) {
-
-            squares[x][y].setColor(squares[active_x][active_y].getColor());
-            squares[active_x][active_y].setColor(Square.EMPTY);
             active_y = active_x = -1;
             generateNext();
 
         } else if(score >= 5){
 
-            squares[active_x][active_y].setColor(Square.EMPTY);
+            //squares[active_x][active_y].setColor(Square.EMPTY);
             active_y = active_x = -1;
 
             updateScore(score,false);

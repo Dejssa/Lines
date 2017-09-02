@@ -14,7 +14,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import dejssa.lines.Cash.BallsMemory;
 import dejssa.lines.Cash.DataBaseOperations;
 import dejssa.lines.Dialogs.MenuDlg;
 import dejssa.lines.gameField.Field;
