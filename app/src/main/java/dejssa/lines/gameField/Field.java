@@ -30,7 +30,6 @@ public class Field implements View.OnClickListener {
 
     private Square[] futureBalls;
     private Square[][] squares = new Square[SIZE][SIZE];
-    private TextView scoreLabel;
 
     private int score = 0;
 
@@ -38,6 +37,7 @@ public class Field implements View.OnClickListener {
     private int active_y = -1;
 
     private final MainActivity context;
+
     private static BallsMemory ballsMemory;
     private GameStep gameStep;
 
@@ -113,10 +113,6 @@ public class Field implements View.OnClickListener {
         Log.v("Step", "Restoring");
     }
 
-    public void setScoreLabel(TextView scoreLabel){
-        this.scoreLabel = scoreLabel;
-    }
-
     public void saveGame(){
 
         for(int i = 0; i < 10; i++){
@@ -127,6 +123,10 @@ public class Field implements View.OnClickListener {
 
         operations.saveGame(squares, score);
     }
+
+    //============================================
+    //              GAME RESTORE
+    //============================================
 
     public void restoreGame(char[] field, int score){
         updateScore(score);
@@ -254,8 +254,21 @@ public class Field implements View.OnClickListener {
     }
 
     private void updateScore(int score){
+
+        int min_score = 5;
+
+        if(score > min_score){
+            double calc = 1.0;
+            for(int i = 0; i <= score - min_score; i++){
+                calc*=1.5;
+            }
+            score = 5 + Double.valueOf(calc).intValue();
+
+        }
+
         this.score += score;
-        scoreLabel.setText(String.valueOf(this.score));
+
+        context.updateScore(this.score);
     }
 
     private void generateNext(){

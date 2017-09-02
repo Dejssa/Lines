@@ -41,14 +41,12 @@ public class MainActivity extends AppCompatActivity {
         versionTxt.setText(BuildConfig.VERSION_NAME);
     }
 
-
     public void startGame() {
         LinearLayout gameField = bindInterface();
         Square[] futureBalls = createFutureBalls();
-        TextView score = bindToScoreTxt();
         fieldButtons();
+        bindToScoreTxt();
         field = new Field(this, gameField, futureBalls);
-        field.setScoreLabel(score);
     }
 
     private LinearLayout bindInterface(){
@@ -135,9 +133,18 @@ public class MainActivity extends AppCompatActivity {
     private TextView bindToScoreTxt(){
         TextView scoreText = (TextView) findViewById(R.id.score);
         setCustomFont(scoreText, true);
-        scoreText.setText("0");
+        updateScore(0);
         return scoreText;
     }
+
+    public void updateScore(int score){
+        TextView scoreText = (TextView) findViewById(R.id.score);
+        scoreText.setText(String.valueOf(score));
+    }
+
+    //============================================
+    //              FONT CUSTOMISE
+    //============================================
 
     public void setCustomFont(Button btn){
 
