@@ -27,7 +27,7 @@ public class Field implements View.OnClickListener {
     public static final Integer FUTURE_BALL = 3;
 
     private int steps = 0;
-    private int unFree = 3;
+    private int unFree = 0;
 
     private Square[] futureBalls;
     private Square[][] squares = new Square[SIZE][SIZE];
@@ -111,7 +111,7 @@ public class Field implements View.OnClickListener {
 
             Log.v("Gen", x+ " " + y);
 
-            if(squares[x][y].isEmpty()){
+            if(!squares[x][y].isRaisedBall()){
                 squares[x][y].setColor(colors[i]);
                 i++;
             }
@@ -127,10 +127,6 @@ public class Field implements View.OnClickListener {
     }
 
     public void saveGame(){
-
-        for(int i = 0; i < 10; i++){
-            Log.v("Save",Arrays.toString(squares[i]) );
-        }
 
         DataBaseOperations operations = new DataBaseOperations(activity);
 
@@ -157,7 +153,7 @@ public class Field implements View.OnClickListener {
                     colors[count] = color;
                     count++;
                 }
-                unFree+= (color >= 'a' && color <= 'z') || (color >= 'A' && color <= 'Z') ? 1 : 0;
+                unFree+= (color >= 'A' && color <= 'Z') ? 1 : 0;
 
                 squares[i][j].setColor(color);
             }
@@ -221,7 +217,6 @@ public class Field implements View.OnClickListener {
             }
 
         }
-
         Log.v("Step", "Active x y : " +String.valueOf(active_x) + String.valueOf(active_y));
     }
 
@@ -229,8 +224,7 @@ public class Field implements View.OnClickListener {
         char saveColor = squares[active_x][active_y].getColor();
         squares[active_x][active_y].setColor(Square.EMPTY);
         int score = gameStep.step(new int[]{active_x, active_y}, new int[]{x, y}, saveColor);
-        //Log.v("Step - placing before", "placing on " + x + " " + y);
-        if (score < 5) {
+        if (score == 0) {
             Log.v("Step - placing", "placing on " + x + " " + y);
             squares[x][y].setColor(saveColor);
 
@@ -239,7 +233,6 @@ public class Field implements View.OnClickListener {
 
         } else if(score >= 5){
 
-            //squares[active_x][active_y].setColor(Square.EMPTY);
             active_y = active_x = -1;
 
             updateScore(score,false);
@@ -247,7 +240,7 @@ public class Field implements View.OnClickListener {
             changeUnFree(-score);
         }
         else{
-
+            squares[active_x][active_y].setColor(saveColor);
             Toast.makeText(activity, "Cannot reach", Toast.LENGTH_SHORT).show();
 
         }
@@ -301,18 +294,22 @@ public class Field implements View.OnClickListener {
         int[][] coords = ballsMemory.restoreCoords();
         char[] colors = ballsMemory.restoreColors();
 
-        riseBalls(coords, colors, gen);
+        int length = 100 - (unFree+3) > FUTURE_BALL ? FUTURE_BALL : 100 - (unFree+3);
+        int crutchLength = 100 - unFree > FUTURE_BALL ? FUTURE_BALL : 100 - unFree;
+
+        Log.v("Length - " , 100 - unFree+"");
+
+        riseBalls(coords, colors, gen, crutchLength);
 
         colors = gen.futureBalls();
         ballsMemory.saveColors(colors);
 
-        int length = FUTURE_BALL;
         for(int i = 0; i < length;){
 
             int x = gen.genZeroTo(SIZE);
             int y = gen.genZeroTo(SIZE);
 
-            Log.v("Gen", x+ " " + y);
+            Log.v("Gen" + length, x+ " " + y);
 
             if(squares[x][y].isEmpty()){
 
@@ -329,13 +326,13 @@ public class Field implements View.OnClickListener {
         }
 
         ballsMemory.saveCoords(coords);
-        changeUnFree(FUTURE_BALL);
+
     }
 
-    private void riseBalls( int[][] coord, char[] colors, RandomGen gen){
+    private void riseBalls( int[][] coord, char[] colors, RandomGen gen, int rising_balls){
         if(coord[0][0] != -1){
-            Log.v("Rise", "rising");
-            for(int i = 0; i < coord.length; i++){
+            Log.v("Rise", "rising" + rising_balls);
+            for(int i = 0; i < rising_balls; i++){
 
                 Log.v("Rise", ""+i);
 
@@ -356,8 +353,10 @@ public class Field implements View.OnClickListener {
                 else{
                     boolean unDone = true;
                     while(unDone){
+
                         int x = gen.genZeroTo(SIZE);
                         int y = gen.genZeroTo(SIZE);
+
                         if(squares[x][y].isEmpty()){
 
                             squares[x][y].setColor((char) (colors[i]-32));
@@ -365,18 +364,21 @@ public class Field implements View.OnClickListener {
                             unDone = false;
 
                         }
+                        Log.v("Rise - finding", colors[i]+"");
                     }
                 }
 
             }
 
         }
+        changeUnFree(rising_balls);
+        Log.v("Rise", "done");
     }
 
     private void changeUnFree(int i){
         unFree+=i;
-        Log.v("Field", unFree + " unFree sqaures left");
-        if(unFree >=98){
+        Log.v("Field", unFree + " is filled");
+        if(unFree >= 100){
             Toast.makeText(activity, "You earn " + score, Toast.LENGTH_LONG).show();
             new EndOfGameDlg(activity, score).show();
         }

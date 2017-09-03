@@ -35,20 +35,20 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void startGame() {
+        LinearLayout gameField = bindInterface();
+        Square[] futureBalls = createFutureBalls();
+        fieldViews();
+        field = new Field(this, gameField, futureBalls);
+    }
+
     private void setVersion() {
         TextView versionTxt = (TextView) findViewById(R.id.main_version);
         versionTxt.setText(BuildConfig.VERSION_NAME);
     }
 
-    public void startGame() {
-        LinearLayout gameField = bindInterface();
-        Square[] futureBalls = createFutureBalls();
-        fieldButtons();
-        bindToScoreTxt();
-        field = new Field(this, gameField, futureBalls);
-    }
-
     private LinearLayout bindInterface(){
+
         LinearLayout gameField = (LinearLayout) findViewById(R.id.main_game_field);
 
         gameField.removeAllViews();
@@ -66,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
         mainContol.setVisibility(View.VISIBLE);
 
         return gameField;
-
 
     }
 
@@ -90,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
         return futureBalls;
     }
 
-    private void fieldButtons(){
+    private void fieldViews(){
 
         Button undo = (Button) findViewById(R.id.menu_undo);
         setCustomFont(undo);
@@ -104,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
         setCustomFont(save);
         save.setOnClickListener(view -> saveGame());
 
+        TextView scoreText = (TextView) findViewById(R.id.score);
+        setCustomFont(scoreText, true);
+        updateScore(0);
     }
 
     private void saveGame(){
@@ -127,13 +129,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void undoStep(){
         field.undoStep();
-    }
-
-    private TextView bindToScoreTxt(){
-        TextView scoreText = (TextView) findViewById(R.id.score);
-        setCustomFont(scoreText, true);
-        updateScore(0);
-        return scoreText;
     }
 
     public void updateScore(int score){

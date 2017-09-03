@@ -79,7 +79,7 @@ public class GameStep {
 
             int score = makeBoom(b, ballColor);
 
-            Log.v("Score", "" + score);
+            Log.v("Step - can reach", "" + score);
             return score;
         }
         else
@@ -93,6 +93,7 @@ public class GameStep {
         score += diagSecond(a, ball);
         score += horizontal(a, ball);
         score += vertical(a, ball);
+
         return score;
     }
 
