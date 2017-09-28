@@ -22,28 +22,49 @@ import dejssa.lines.RandomGen;
  */
 public class Field implements View.OnClickListener {
 
-    private final Integer SIZE = 10;
+    protected final Integer SIZE = 10;
 
     public static final Integer FUTURE_BALL = 3;
 
-    private int steps = 0;
-    private int unFree = 0;
+    protected int steps = 0;
+    protected int unFree = 0;
 
-    private Square[] futureBalls;
-    private Square[][] squares = new Square[SIZE][SIZE];
+    protected Square[] futureBalls;
+    protected Square[][] squares = new Square[SIZE][SIZE];
 
-    private int score = 0;
+    protected int score = 0;
 
-    private int active_x = -1;
-    private int active_y = -1;
+    protected int active_x = -1;
+    protected int active_y = -1;
 
-    private final MainActivity activity;
+    protected final MainActivity activity;
 
-    private static BallsMemory ballsMemory;
-    private GameStep gameStep;
+    protected static BallsMemory ballsMemory;
+    protected GameStep gameStep;
+
+    protected boolean withHint;
 
 
     public Field(MainActivity activity, LinearLayout gameField, Square[] balls){
+
+        this.activity = activity;
+
+        this.withHint = true;
+
+        ballsMemory = new BallsMemory(FUTURE_BALL);
+
+        futureBalls = balls;
+
+        createField(gameField);
+
+        generateFirst();
+
+        gameStep = new GameStep(squares);
+
+        generateNext();
+    }
+
+    public Field(MainActivity activity, LinearLayout gameField, Square[] balls, boolean withHint){
 
         this.activity = activity;
 
@@ -60,6 +81,7 @@ public class Field implements View.OnClickListener {
         generateNext();
     }
 
+    //done
     @Override
     public String toString(){
         StringBuilder fieldToSave = new StringBuilder(100);
@@ -72,8 +94,8 @@ public class Field implements View.OnClickListener {
 
         return fieldToSave.toString();
     }
-
-    private void createField(LinearLayout gameField){
+    //done
+    protected void createField(LinearLayout gameField){
         LinearLayout[] field = new LinearLayout[SIZE];
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT, 1f);
@@ -98,7 +120,7 @@ public class Field implements View.OnClickListener {
         }
     }
 
-    private void generateFirst(){
+    protected void generateFirst(){
 
         RandomGen gen = new RandomGen();
 
@@ -119,25 +141,30 @@ public class Field implements View.OnClickListener {
         }
     }
 
+    //done
     public void undoStep(){
         Object[] game_save = ballsMemory.restoreGame();
-        Log.v("Step", String.valueOf(game_save[0]));
-        restoreGame(String.valueOf(game_save[0]).toCharArray(), (Integer) game_save[1]);
-        Log.v("Step", "Restoring");
+        if(game_save != null) {
+            Log.v("Step",String.valueOf(game_save[0]));
+            restoreGame(String.valueOf(game_save[0]).toCharArray(), (Integer) game_save[1], withHint);
+            Log.v("Step", "Restoring");
+        }
     }
 
+    //done
     public void saveGame(){
 
         DataBaseOperations operations = new DataBaseOperations(activity);
 
-        operations.saveGame(this.toString(), score);
+        operations.saveGame(this.toString(), score, withHint);
     }
 
     //============================================
     //              GAME RESTORE
     //============================================
-
-    public void restoreGame(char[] field, int score){
+    //TODO CHECK IT
+    public void restoreGame(char[] field, int score, boolean withHint){
+        this.withHint = withHint;
         updateScore(score, true);
         unFree = 0;
         int[][] coord = new int[3][2];
@@ -162,7 +189,8 @@ public class Field implements View.OnClickListener {
         restoreFutureBalls(coord, colors);
     }
 
-    private void restoreFutureBalls(int[][] coords, char[] colors){
+    //done
+    protected void restoreFutureBalls(int[][] coords, char[] colors){
         Log.v("Restore - colors" ,Arrays.toString(colors));
         for(int i = 0; i < colors.length; i++)
             Log.v("Restore - coords" ,Arrays.toString(coords[i]));
@@ -220,7 +248,7 @@ public class Field implements View.OnClickListener {
         Log.v("Step", "Active x y : " +String.valueOf(active_x) + String.valueOf(active_y));
     }
 
-    private void fieldUpdate(int x, int y){
+    protected void fieldUpdate(int x, int y){
         char saveColor = squares[active_x][active_y].getColor();
         squares[active_x][active_y].setColor(Square.EMPTY);
         int score = gameStep.step(new int[]{active_x, active_y}, new int[]{x, y}, saveColor);
@@ -246,7 +274,8 @@ public class Field implements View.OnClickListener {
         }
     }
 
-    private void selectBall(int x, int y){
+    //done
+    protected void selectBall(int x, int y){
         if(active_x != -1 && active_y != -1){
             squares[active_x][active_y].unselectBall();
         }
@@ -255,7 +284,7 @@ public class Field implements View.OnClickListener {
         squares[active_x][active_y].selectBall();
     }
 
-    private void unselectedBall(int x, int y){
+    protected void unselectedBall(int x, int y){
         squares[x][y].unselectBall();
         active_x = active_y = -1;
     }
@@ -263,8 +292,8 @@ public class Field implements View.OnClickListener {
     //============================================
     //
     //============================================
-
-    private void updateScore(int score, boolean restoring){
+    //done
+    protected void updateScore(int score, boolean restoring){
         if(restoring){
             this.score = score;
         }
@@ -287,8 +316,63 @@ public class Field implements View.OnClickListener {
 
         activity.updateScore(this.score);
     }
+    //TODO CHECK IT
 
-    private void generateNext(){
+    protected void generateNext(){
+        RandomGen gen = new RandomGen();
+
+        int[][] coords = ballsMemory.restoreCoords();
+        char[] colors = ballsMemory.restoreColors();
+
+
+        int crutchLength = 100 - unFree > FUTURE_BALL ? FUTURE_BALL : 100 - unFree;
+
+        Log.v("Length - " , 100 - unFree+"");
+
+        riseBalls(coords, colors, gen, crutchLength);
+
+        generateFuture(withHint);
+    }
+
+    protected void generateFuture(boolean withHint){
+        RandomGen gen = new RandomGen();
+
+        int length = 100 - (unFree+3) > FUTURE_BALL ? FUTURE_BALL : 100 - (unFree+3);
+
+        int[][] coords = ballsMemory.getClearCoords();
+        char[] colors = gen.futureBalls();
+
+        ballsMemory.saveColors(colors);
+
+        for(int i = 0; i < length;){
+
+            int x = gen.genZeroTo(SIZE);
+            int y = gen.genZeroTo(SIZE);
+
+            Log.v("Gen" + length, x+ " " + y);
+
+            if(squares[x][y].isEmpty()){
+
+                //TODO added
+                if(withHint)
+                    squares[x][y].setColor(colors[i]);
+
+                futureBalls[i].setColor((char)(colors[i]-32));
+
+                coords[i][0] = x;
+                coords[i][1] = y;
+
+                i++;
+
+            }
+
+        }
+
+        ballsMemory.saveCoords(coords);
+    }
+
+    /*
+    protected void generateNext(){
         RandomGen gen = new RandomGen();
 
         int[][] coords = ballsMemory.restoreCoords();
@@ -327,9 +411,9 @@ public class Field implements View.OnClickListener {
 
         ballsMemory.saveCoords(coords);
 
-    }
+    }*/
 
-    private void riseBalls( int[][] coord, char[] colors, RandomGen gen, int rising_balls){
+    protected void riseBalls( int[][] coord, char[] colors, RandomGen gen, int rising_balls){
         if(coord[0][0] != -1){
             Log.v("Rise", "rising" + rising_balls);
             for(int i = 0; i < rising_balls; i++){
@@ -374,8 +458,8 @@ public class Field implements View.OnClickListener {
         changeUnFree(rising_balls);
         Log.v("Rise", "done");
     }
-
-    private void changeUnFree(int i){
+    //done
+    protected void changeUnFree(int i){
         unFree+=i;
         Log.v("Field", unFree + " is filled");
         if(unFree >= 100){

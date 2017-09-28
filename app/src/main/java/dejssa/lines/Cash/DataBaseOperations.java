@@ -29,7 +29,7 @@ public class DataBaseOperations  {
         dataBase = new DataBase(context);
     }
 
-    public void saveGame(String field, Integer score){
+    public void saveGame(String field, Integer score, boolean withHint){
         deletePrevious();
 
         Log.v("Save - field", field);
@@ -39,6 +39,7 @@ public class DataBaseOperations  {
 
         cv.put(DataBase.SAVE_SCORE, score);
         cv.put(DataBase.SAVE_FIELD, field);
+        cv.put(DataBase.SAVE_MODE, withHint ? 1 : 0);
 
         sqLiteDatabase.insert(DataBase.SAVE, null, cv);
 
@@ -57,19 +58,24 @@ public class DataBaseOperations  {
         sqLiteDatabase = dataBase.getReadableDatabase();
         String field = "";
         Integer score = 0;
+        Boolean withHint = false;
         Cursor cursor;
         if(sqLiteDatabase != null) {
+            //something wrong with database, first row for update second for connect
+            cursor = sqLiteDatabase.query(DataBase.SAVE, null, null, null, null, null, null);
             cursor = sqLiteDatabase.query(DataBase.SAVE, null, null, null, null, null, null);
             if (cursor.moveToFirst()) {
                 do {
                     field = cursor.getString(cursor.getColumnIndex(DataBase.SAVE_FIELD));
                     score = cursor.getInt(cursor.getColumnIndex(DataBase.SAVE_SCORE));
+                    int mode = cursor.getInt(cursor.getColumnIndex(DataBase.SAVE_MODE));
+                    withHint = mode == 1;
                 } while (cursor.moveToNext());
             }
             cursor.close();
         }
 
-        return field.equals("") && score == 0 ? null : new Object[]{field, score};
+        return field.equals("") && score == 0 ? null : new Object[]{field, score, withHint};
     }
 
     public ArrayList<Score> restoreScore(){

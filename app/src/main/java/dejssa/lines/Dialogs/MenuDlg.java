@@ -48,7 +48,7 @@ public class MenuDlg extends Dialog{
         Button newGameBtn = findViewById(R.id.menu_new_game);
         activity.setCustomFont(newGameBtn);
         newGameBtn.setOnClickListener(view -> {
-            activity.startGame();
+            activity.startGame(true);
             dismiss();
         });
 
@@ -64,6 +64,13 @@ public class MenuDlg extends Dialog{
         exitBtn.setOnClickListener(view -> {
             activity.finish();
             System.exit(0);
+        });
+
+        Button newGameNoHint = findViewById(R.id.menu_new_game_no_hint);
+        activity.setCustomFont(newGameNoHint);
+        newGameNoHint.setOnClickListener(view ->{
+            activity.startGame(false);
+            dismiss();
         });
     }
 

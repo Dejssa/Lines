@@ -29,6 +29,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        style="@style/DlgButton"
+        android:text="New Game\n(No Hints)"
+        android:id="@+id/menu_new_game_no_hint"
+        />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:enabled="true"
         style="@style/DlgButton"
         android:text="@string/score"

@@ -1,5 +1,6 @@
 package dejssa.lines.Cash;
 
+import android.app.Activity;
 import android.util.Log;
 
 import java.util.Arrays;
@@ -29,6 +30,22 @@ public class BallsMemory {
             colors[i] = Square.EMPTY;
         }
 
+    }
+
+    public int[][] getClearCoords() {
+        int[][] coord = new int[size][2];
+        for (int i = 0; i < size; i++) {
+            coord[i] = new int[]{-1, -1};
+        }
+        return coord;
+    }
+
+    public char[] getClearColors() {
+        char[] colors = new char[size];
+        for (int i = 0; i < size; i++) {
+            colors[i] = Square.EMPTY;
+        }
+        return colors;
     }
 
     public void saveCoords(int[][] coord){

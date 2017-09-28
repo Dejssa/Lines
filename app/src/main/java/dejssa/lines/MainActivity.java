@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -17,11 +18,12 @@ import android.widget.Toast;
 import dejssa.lines.Cash.DataBaseOperations;
 import dejssa.lines.Dialogs.MenuDlg;
 import dejssa.lines.gameField.Field;
+import dejssa.lines.gameField.FieldNoHint;
 import dejssa.lines.gameField.Square;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Field field;
+    private Field fieldNoHint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,11 +37,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void startGame() {
+    public void startGame(boolean withHint) {
         LinearLayout gameField = bindInterface();
         Square[] futureBalls = createFutureBalls();
         fieldViews();
-        field = new Field(this, gameField, futureBalls);
+        if(withHint)
+            fieldNoHint = new Field(this, gameField, futureBalls);
+        else
+            fieldNoHint = new FieldNoHint(this, gameField, futureBalls);
     }
 
     private void setVersion() {
@@ -70,14 +75,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Square[] createFutureBalls(){
-        Square[] futureBalls = new Square[Field.FUTURE_BALL];
+        Square[] futureBalls = new Square[FieldNoHint.FUTURE_BALL];
 
         LinearLayout futureBallsLay = (LinearLayout) findViewById(R.id.futureBallsLay);
 
         futureBallsLay.removeAllViews();
 
         ViewGroup.LayoutParams ballsParams = futureBallsLay.getLayoutParams();
-        ballsParams.height = futureBallsLay.getWidth() / Field.FUTURE_BALL;
+        ballsParams.height = futureBallsLay.getWidth() / FieldNoHint.FUTURE_BALL;
 
         for(int i = 0; i < futureBalls.length; i++){
             futureBalls[i] = new Square(this);
@@ -109,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveGame(){
-        field.saveGame();
+        fieldNoHint.saveGame();
     }
 
     public void restoreGame(){
@@ -117,18 +122,17 @@ public class MainActivity extends AppCompatActivity {
 
         Object[] savedGame = operations.loadGame();
         if(savedGame != null) {
-            startGame();
+            startGame(false);
             Log.v("Restore", savedGame[0].toString());
-            field.restoreGame(savedGame[0].toString().toCharArray(), (Integer) savedGame[1]);
+            fieldNoHint.restoreGame(savedGame[0].toString().toCharArray(), (Integer) savedGame[1], (Boolean) savedGame[2]);
         }
         else{
-            Toast.makeText(this, "No saved game found", Toast.LENGTH_LONG).show();
-            startGame();
+            Toast.makeText(this, "No saved game found", Toast.LENGTH_LONG).show();;
         }
     }
 
     private void undoStep(){
-        field.undoStep();
+        fieldNoHint.undoStep();
     }
 
     public void updateScore(int score){
@@ -160,6 +164,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void setCustomFont(CheckBox cbx){
+
+        AssetManager am = this.getApplicationContext().getAssets();
+
+        Typeface fontAkrobat = Typeface.createFromAsset(am,  "fonts/akrobat_light.otf");
+
+        cbx.setTypeface(fontAkrobat);
+
+    }
+
     public void setCustomFont(TextView btn, boolean bold){
 
         AssetManager am = this.getApplicationContext().getAssets();
@@ -175,6 +189,8 @@ public class MainActivity extends AppCompatActivity {
         btn.setTypeface(fontAkrobat);
 
     }
+
+
 }
 
 
